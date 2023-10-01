@@ -8,7 +8,8 @@ from ..utils import (
 
 
 class ShowRoomLiveIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?showroom-live\.com/(?!onlive|timetable|event|campaign|news|ranking|room)(?P<id>[^/?#&]+)'
+    #_VALID_URL = r'https?://(?:www\.)?showroom-live\.com/(?!onlive|timetable|event|campaign|news|ranking|room)(?P<id>[^/?#&]+)'
+    _VALID_URL = r'https?://(?:www\.)?showroom-live\.com/(?:r/)?(?!onlive|timetable|event|campaign|news|ranking|room)(?P<id>[^/?#&]+)'
     _TEST = {
         'url': 'https://www.showroom-live.com/48_Nana_Okada',
         'only_matching': True,
@@ -21,7 +22,11 @@ class ShowRoomLiveIE(InfoExtractor):
 
         room_id = self._search_regex(
             (r'SrGlobal\.roomId\s*=\s*(\d+)',
-             r'(?:profile|room)\?room_id\=(\d+)'), webpage, 'room_id')
+             #r'(?:profile|room)\?room_id\=(\d+)'), webpage, 'room_id')
+             r'(?:profile|room)\?room_id\=(\d+)'), webpage, 'room_id', default=None)
+        if not room_id:
+            expected = not self._get_cookies(url).get('sr_id')
+            raise ExtractorError('Fresh cookies (not necessarily logged in) are needed', expected=expected)
 
         room = self._download_json(
             urljoin(url, '/api/room/profile?room_id=%s' % room_id),
